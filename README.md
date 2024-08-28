@@ -4,12 +4,14 @@
 
 	- Identifying and isolating a floating neutral issue on my solar inverter
 	- Installing 2400W of solar generation on the roof of my 5th wheel
-	- Learning to play Kansas' 'Dust In The Wind' on acoustic guitar
 	- A few AI projects
 
 - 🌱 I’m currently learning ...
 
-	How to coax accurate, consistent, complex outputs from LLM by alternating generative and adversarial review steps in a flexibly staged, autoscaling pipeline
+	- How to coax accurate, consistent, complex outputs from LLM by alternating generative and adversarial review steps in a flexibly staged, autoscaling pipeline
+	- Kansas' 'Dust In The Wind' on acoustic guitar
+ 	- Refactoring my README, evidently
+
 
 - 👯 I’m looking to collaborate on ...
 
