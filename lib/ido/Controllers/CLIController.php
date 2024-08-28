@@ -1,4 +1,5 @@
 <?php
+
 namespace Ido\Controllers;
 
 class CLIController extends \Ido\Base\Controller { 
@@ -12,4 +13,5 @@ class CLIController extends \Ido\Base\Controller {
 		echo 'CLIController::run' . PHP_EOL;
 	}
 }
+
 ?>

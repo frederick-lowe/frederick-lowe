@@ -1,8 +1,12 @@
 <?php
+
 namespace Ido;
 
 class APIController extends \Ido\Base\Controller { 
-	public function __construct () 
+	public function __construct (
+		\Ido\Classes\Config $config,
+		\Ido\Classes\Log $log
+	) 
 	{
 
 	}
@@ -12,4 +16,5 @@ class APIController extends \Ido\Base\Controller {
 		echo 'APIController::run' . PHP_EOL;
 	}
 }
+
 ?>

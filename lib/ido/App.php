@@ -55,18 +55,28 @@ class App
     }
 
     public function run() : void {
+        
         switch($this->getRoute()) {
             case 'api':
-                $controller = new \Ido\Controllers\APIController();
+                $controller = new \Ido\Controllers\APIController(
+                    new \Ido\Classes\Config(),
+                    new \Ido\Classes\Log()
+                );
             break;
 
             case 'cli':
-                $controller = new \Ido\Controllers\CLIController();
+                $controller = new \Ido\Controllers\CLIController(
+                    new \Ido\Classes\Config(),
+                    new \Ido\Classes\Log()
+                );
             break;
 
             default:
             case 'src':
-                $controller = new \Ido\Controllers\WebController();
+                $controller = new \Ido\Controllers\WebController(
+                    new \Ido\Classes\Config(),
+                    new \Ido\Classes\Log()
+                );
             break;
         }
 
