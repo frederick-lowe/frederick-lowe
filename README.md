@@ -2,10 +2,10 @@
 
 - 🔭 I’m currently working on ...
 
-	Identifying and isolating a floating neutral issue on my solar inverter
-	Installing 2400W of solar generation on the roof of my 5th wheel
-	Learning to play Kansas' 'Dust In The Wind' on acoustic guitar
-	A few AI projects
+	- Identifying and isolating a floating neutral issue on my solar inverter
+	- Installing 2400W of solar generation on the roof of my 5th wheel
+	- Learning to play Kansas' 'Dust In The Wind' on acoustic guitar
+	- A few AI projects
 
 - 🌱 I’m currently learning ...
 
