@@ -31,7 +31,7 @@ class WebController extends Controller
     }
 
     public function run(): void 
-    {
+    {    
         $this->render('elements/doctype.html');
     }
 
@@ -54,7 +54,14 @@ class WebController extends Controller
         return $this->pageConfig;
     }
 
-    private function setPageConfig(): void 
+    private function setEnv() : void {
+        if(str_contains($_SERVER['REQUEST_URI'], '/src')) {
+            $this->pageConfig['src'] = '/src';
+        }
+        $this->pageConfig['year'] = date('Y', time());
+    }
+
+    private function setPageConfig() : void 
     {
         $this->pageConfigFile = 
         	$this->getDocRoot() . str_replace('html', 'json', $this->getPage());
@@ -62,6 +69,7 @@ class WebController extends Controller
         if (!file_exists($this->pageConfigFile)) 
         {
             $this->pageConfig = [];
+            $this->setEnv();
             return;
         }
 
@@ -84,11 +92,26 @@ class WebController extends Controller
             $this->log->error("Error setting page config: " . $e->getMessage());
             $this->pageConfig = [];
         }
+
+        $this->setEnv();
     }
 
     public function getPage(): string 
     {
         return $this->page;
+    }
+
+    public function isHomePage() : string {
+        /* TODO: make dyanmic */
+        $pages = [ 'blog', 'contact' ];
+
+        foreach($pages as $index => $page) {
+            if(str_contains($_SERVER['REQUEST_URI'], $page)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     private function setPage(): string 
@@ -132,9 +155,14 @@ class WebController extends Controller
         if ($this->renderDepth === 0) 
         {
             $buffer = ob_get_clean();
-            $this->content = $this->replaceMacros($buffer, $data);   
+            $this->content = $this->replaceMacros($buffer, $data);
+            $this->content = $this->minimize($this->content);
             echo $this->content;
         }
+    }
+
+    private function minimize(string $content): string {
+        return implode('', array_filter(preg_split("/(\n|\t|\s{2,})/", $content)));
     }
 
     /**

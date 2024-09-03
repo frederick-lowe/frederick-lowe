@@ -1,7 +1,30 @@
-<ul>
-	<li><a href="#whoIAmNot">Who I Am Not</a></li>
-	<li><a href="#whoIAm">Who I Am</a></li>
+<style class="inline">
+	ul.fl__links,
+	ul.fl__links ul {
+		all: unset;
+		list-style: none;
+	}
+
+	ul.fl__links ul li {
+		margin-left: 1em;
+	}
+
+	ul.fl__links li {
+		margin-top: .65em;
+	}
+</style>
+<ul class="fl__links">
+	<?php if($this->isHomePage()) { ?>
+	<li><b>Home</b>
+		<ul>
+			<li><a href="#whoIAmNot">Who I Am Not</a></li>
+			<li><a href="#whoIAm">Who I Am</a></li>
+		</ul>
+	</li>
 	<li><a href="#projects">Projects</a></li>
-	<li><a href="/blog/">Blog</a></li>
-	<li><a href="/contact/">Contact</a></li>
+	<?php } else { ?>
+	<li><a href="{%src%}/">Home</a></li>
+	<?php } ?>
+	<li><a href="{%src%}/blog/">Blog</a></li>
+	<li><a href="{%src%}/contact/">Contact</a></li>
 </ul>
