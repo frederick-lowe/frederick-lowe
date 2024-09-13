@@ -1,0 +1,12 @@
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": "{%name%}",
+    "description": "{%summary%}",
+    "thumbnailUrl": "{%thumbnailUrl%}",
+    "uploadDate": "{%uploadDate%}",
+    "contentUrl": "{%contentUrl%}",
+    "embedUrl": "{%embedUrl%}"
+}
+</script>

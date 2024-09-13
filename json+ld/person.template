@@ -1,0 +1,16 @@
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "{%name%}",
+    "jobTitle": "{%jobTitle%}",
+    "description": "{%description%}",
+    "url": "{%url%}",
+    "sameAs": {%sameAs},
+    "skills": {%skills%},
+    "workLocation": {
+        "@type": "Place",
+        "name": "{%workLocation.name%}"
+    }
+}
+</script>

@@ -4,8 +4,7 @@ namespace Ido\Classes;
 
 class Log { 
 
-	public function __construct () 
-	{
+	public function __construct () {
 
 	}
 
@@ -28,6 +27,7 @@ class Log {
 	public function write() {
 
 	}
+	
 }
 
 ?>

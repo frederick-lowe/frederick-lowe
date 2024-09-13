@@ -1,6 +1,4 @@
-    <footer>
-        <p>&copy; {%year%} Frederick Lowe. All rights reserved.</p>
-        <nav aria-label="Footer navigation">
-        	<?php $this->render('elements/links.html'); ?>
-        </nav>
-    </footer>
+<footer>
+<?php $this->render('elements/copyright.html'); ?>
+<?php $this->render('elements/nav.html', ['aria-label' => 'Footer Navigation' ]); ?>
+</footer>

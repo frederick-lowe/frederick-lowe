@@ -1,0 +1,20 @@
+{
+    "headline": "",
+    "image": "",
+    "description": "",
+    "url": "",
+    "author": {
+        "@type": "Person",
+        "name": ""
+    },
+    "publisher": {
+        "@type": "Organization",
+        "name": "",
+        "logo": {
+            "@type": "ImageObject",
+            "url": ""
+        }
+    },
+    "datePublished": "",
+    "dateModified": ""
+}

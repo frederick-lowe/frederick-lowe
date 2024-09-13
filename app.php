@@ -1,1 +1,4 @@
-<?php require_once('./lib/ido/App.php'); ?>
+<?php 
+	require 'vendor/autoload.php';
+	require 'lib/ido/App.php'; 
+?>
