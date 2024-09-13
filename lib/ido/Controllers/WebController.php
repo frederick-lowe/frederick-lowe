@@ -3,10 +3,11 @@
 namespace Ido\Controllers;
 
 use Ido\Base\Controller;
-use Ido\Traits\Configurable;
-use Ido\Traits\Loggable;
 use Ido\Classes\Config;
 use Ido\Classes\Log;
+use Ido\Traits\Configurable;
+use Ido\Traits\Loggable;
+use Ido\Traits\Storable;
 use InvalidArgumentException;
 use RuntimeException;
 
@@ -14,127 +15,43 @@ class WebController extends Controller
 {
     use Configurable;
     use Loggable;
+    use Storable;
 
-    private string $docRoot;
+    private static $counter;
+
+    private string $docroot;
+    private string $route;
     private string $content;
-    private string $page;
-    private array $pageConfig = [];
-    private string $pageConfigFile;
-    private int $renderDepth = 0;
+    private int $renderDepth;
 
-    public function __construct(Config $config, Log $log) 
+    public function __construct(\Ido\Classes\Config $config, \Ido\Classes\Log $log, \Ido\Classes\Document $document) 
     {
         $this->setConfig($config);
         $this->setLog($log);
-        $this->docRoot = $this->setDocRoot();
-        $this->page = $this->setPage();
+        $this->setDocument($document);
+    }
+
+    public function getDocroot() : string 
+    {
+        return $this->docroot ??= $_SERVER['DOCUMENT_ROOT'];
+    }
+
+    public function getRoute() : string 
+    {
+        return $this->route ??= $_SERVER['REQUEST_URI'];
     }
 
     public function run(): void 
-    {
+    {    
         $this->render('elements/doctype.html');
     }
 
-    public function setDocRoot(?string $docRoot = null): string 
-    {
-        return $this->docRoot = $docRoot ?? $_SERVER['DOCUMENT_ROOT'];
-    }
+    public function milliTime(): int {
+        self::$counter += 1;
 
-    public function getDocRoot(): string 
-    {
-        return $this->docRoot;
-    }
+        $milliTime = (int)(microtime(true) * 1000);
 
-    public function getPageConfig(): array 
-    {
-        if (empty($this->pageConfig)) 
-        {
-            $this->setPageConfig();
-        }
-        return $this->pageConfig;
-    }
-
-    private function setPageConfig(): void 
-    {
-        $this->pageConfigFile = 
-        	$this->getDocRoot() . str_replace('html', 'json', $this->getPage());
-        
-        if (!file_exists($this->pageConfigFile)) 
-        {
-            $this->pageConfig = [];
-            return;
-        }
-
-        try 
-        {
-            $configContent = file_get_contents($this->pageConfigFile);
-            if ($configContent === false) 
-            {
-                throw new RuntimeException("Failed to read page config file: {$this->pageConfigFile}");
-            }
-            $decodedConfig = json_decode($configContent, true);
-            if (json_last_error() !== JSON_ERROR_NONE) 
-            {
-                throw new RuntimeException("Failed to parse JSON in page config file: " . json_last_error_msg());
-            }
-            $this->pageConfig = $decodedConfig;
-        } 
-        catch (\Exception $e) 
-        {
-            $this->log->error("Error setting page config: " . $e->getMessage());
-            $this->pageConfig = [];
-        }
-    }
-
-    public function getPage(): string 
-    {
-        return $this->page;
-    }
-
-    private function setPage(): string 
-    {
-        $page = str_replace('/src/', '/pages/', $_SERVER['REQUEST_URI']);
-        if (!str_contains($page, 'index.html')) 
-        {
-            $page .= 'index.html';
-        }
-        return $page;
-    }
-
-    public function render(string $file): void 
-    {
-        if ($this->renderDepth === 0) 
-        {
-            ob_start();
-        }
-
-        $resource = $this->getDocRoot() . DIRECTORY_SEPARATOR . $file;
-        
-        if (!file_exists($resource)) 
-        {
-            $this->log->warning("Resource not found: {$resource}");
-            echo "<!-- Resource {$resource} not found -->" . PHP_EOL;
-            return;
-        }
-
-        $data = $this->getPageConfig();
-
-        try 
-        {
-            $this->renderDepth++;
-            include $resource;
-        } 
-        finally 
-        {
-            $this->renderDepth--;
-        }
-
-        if ($this->renderDepth === 0) 
-        {
-            $buffer = ob_get_clean();
-            $this->content = $this->replaceMacros($buffer, $data);   
-            echo $this->content;
-        }
+        return (int)($milliTime + self::$counter);
     }
 
     /**
@@ -148,6 +65,10 @@ class WebController extends Controller
      */
     private function replaceMacros(string $content, array $data): string 
     {
+        if(str_contains($content, '{%blog-post%}')) {
+            $this->renderArticle($content);
+        }
+
         $callback = function ($matches) use ($data) 
         {
             $key = trim($matches[1], '%');
@@ -167,4 +88,45 @@ class WebController extends Controller
 
         return preg_replace_callback('/\{%([^}]+)%\}/', $callback, $content);
     }
+
+    public function render(string $file): void 
+    {
+        if ($this->renderDepth === 0) 
+        {
+            ob_start();
+        }
+
+        $resource = $this->getDocRoot() . DIRECTORY_SEPARATOR . $file;
+        
+        if (!file_exists($resource)) 
+        {
+            echo "<!-- Resource {$resource} not found -->" . PHP_EOL;
+            return;
+        }
+
+        $data = $this->getPageConfig();
+
+        try 
+        {
+            $this->renderDepth++;
+            include $resource;
+        } 
+        finally 
+        {
+            $this->renderDepth--;
+        }
+
+        if ($this->renderDepth === 0) 
+        {
+            $buffer = ob_get_clean();
+            $this->content = $this->replaceMacros($buffer, $data);
+            $this->content = $this->minimize($this->content);
+            echo $this->content;
+        }
+    }
+
+    private function minimize(string $content): string {
+        return implode('', array_filter(preg_split("/(\n|\t|\s{2,})/", $content)));
+    }
+
 }

@@ -1,0 +1,25 @@
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    "name": "{%name%}",
+    "description": "{%summary%}",
+    "thumbnailUrl": "{%thumbnailUrl%}",
+    "contentUrl": "{%contentUrl%}",
+    "embedUrl": "{%embedUrl%}",
+    "uploadDate": "{%uploadDate%}",
+    "duration": "{%duration%}",
+    "publisher": {
+        "@type": "Organization",
+        "name": "{%publisher.name%}",
+        "logo": {
+          "@type": "ImageObject",
+          "url": "{%publisher.logo.url%}"
+        }
+    },
+    "author": {
+        "@type": "Person",
+        "name": "{%author.name%}"
+    }
+}
+</script>

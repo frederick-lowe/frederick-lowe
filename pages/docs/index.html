@@ -1,0 +1,13 @@
+<main>
+    <section id="section1" aria-labelledby="section-1-heading">
+        <h2 id="section-1-heading">Atomic Author</h2>
+        <ul class="fl__facts">
+            <li>The Control hierarchy reflects the following, common pattern: Controller &gt; Handler &gt; Service</li>
+            <li>Article Processing is performed in pipeline stages under $ROOT/src/Controllers/ronCrontroller.php</li>
+            <li>Some pipeline stages handle API calls. Others manage local steps, for example, image optimization</li>
+            <li>$ROOT/conf/src/Cron/[StageHandler].json defines "vendor"</li>
+            <li>"vendor" defines Service that will be invoked to handle a given stage. For example, if conf.src.Cron.FFHandler.vendor is set to "OpenAI", the Service used by the Handler will be $ROOT/src/Services/OpenAITextService.php</li>
+            <li>Service configuration is reposed in $ROOT/conf/src/Services/[ServiceName].json</li>
+        </ul>
+    </section>
+</main>

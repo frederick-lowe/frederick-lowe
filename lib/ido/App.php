@@ -75,7 +75,8 @@ class App
             case 'src':
                 $controller = new \Ido\Controllers\WebController(
                     new \Ido\Classes\Config(),
-                    new \Ido\Classes\Log()
+                    new \Ido\Classes\Log(),
+                    new \Ido\Classes\Document()
                 );
             break;
         }

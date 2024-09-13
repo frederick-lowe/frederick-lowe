@@ -2,15 +2,28 @@
 
 namespace Ido\Controllers;
 
-class CLIController extends \Ido\Base\Controller { 
-	public function __construct () 
-	{
+use Ido\Base\Controller;
+use Ido\Classes\Config;
+use Ido\Classes\Log;
+use Ido\Traits\Configurable;
+use Ido\Traits\Loggable;
+use InvalidArgumentException;
+use RuntimeException;
 
-	}
+class CLIController extends \Ido\Base\Controller { 
+    use Configurable;
+    use Loggable;
+
+    public function __construct(\Ido\Classes\Config $config, \Ido\Classes\Log $log) 
+    {
+        $this->setConfig($config);
+        $this->setLog($log);
+    }
 
 	public function run() : void 
 	{
-		echo 'CLIController::run' . PHP_EOL;
+		phpinfo();
+		echo 'CLIController::run (' . __FILE__ . ')' . PHP_EOL;
 	}
 }
 
