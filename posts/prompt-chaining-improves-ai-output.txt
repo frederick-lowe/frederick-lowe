@@ -1,0 +1,98 @@
+If you're actively using AI for publishing or analytics tasks, you’ve almost certainly developed a complex prompt that works beautifully up to a point, but as you near your goal, small changes suddenly make the output worse. This happens because — as you add the polishing steps to your opus — the Transformer incurs “attention fragmentation.” You can think of this as it being distracted by the extra token relationships your end-stage refinements create. In this post I explain how you can improve AI output once you've hit a plateau, using an approvach I call Prompt Chaining.
+
+Prompt Chaining treats prompting as a publishing workflow reflective of at least two AI stages:
+
+* A Generative stage, in which you prompt an AI to create or analyze content.
+
+* An "Adversarial" review stage, in which you prompt an AI to review and improve the output from the Generative stage.
+
+Prompt Chaining works lock in key with my favorite prompting strategy, JSON Meta-Prompting, which you can read about here. For a practical example, you can try the following Generative Stage prompt in your LLM Chat client of choice:
+
+Use the following prompt to generate a JSON article about visiting Art Galleries in a major North American city.
+ 
+```json {
+	"Summary": "Replace this field with a 128 to 196 word summary explaining the joys of visiting Art Galleries in North America",
+	"Location": "Replace this field with a random Great City in North America",
+	"Attractions" : "Replace this field with three Attractions in the selected city, each representing a popular Art Gallery located there. Structure each Attraction as an object structured as follows: { \"Name\": "Replace this field with the name of the Art Gallery", \"Link\": "Replace this field with a link to the Art Gallery", \"Description\": "Replace this field with a 96 to 128 word description the Art Gallery", \"Fun Fact\": "Replace this field with a 48 to 96 word fun fact about the Art Gallery. Fun facts can be historical, cultural, or location-adjacent. If the Art Gallery doesn't have a bona-fide fun fact, omit the Fun Fact field entirely."},
+	\"Getting Here\": "Replace this field with a 96 to 128 word providing information about how a person in the City can get to the location.",
+	"Closing": "Close the article by re-iterating key points without redundancy."
+}```
+
+For this particular Article, Anthropic's Claude 3.5 (Sonnet) produced the following article:
+
+{
+    "Summary": "Chicago's art gallery scene offers an unparalleled journey through artistic expression, from contemporary installations to classical masterpieces. The city's commitment to public art and cultural preservation has fostered a vibrant ecosystem of galleries, museums, and exhibition spaces that attract millions of visitors annually. Whether you're an experienced art enthusiast or a curious newcomer, Chicago's diverse art institutions provide immersive experiences that showcase both internationally renowned artists and emerging local talents. The city's architectural heritage serves as a stunning backdrop to these cultural treasures, making gallery-hopping an adventure that combines visual arts with historic urban exploration.",
+    "Location": "Chicago",
+    "Attractions": [
+        {
+            "Name": "Art Institute of Chicago",
+            "Link": "https://www.artic.edu",
+            "Description": "The Art Institute of Chicago stands as one of the oldest and largest art museums in the United States. Its vast collection spans thousands of years of human creativity, from ancient artifacts to contemporary installations. The museum is particularly famous for its impressive collection of Impressionist and Post-Impressionist paintings, including iconic works by Monet, Van Gogh, and Seurat. The modern wing, designed by Renzo Piano, offers breathtaking views of Millennium Park alongside cutting-edge exhibitions.",
+            "Fun Fact": "The two bronze lions guarding the museum's Michigan Avenue entrance have names: they're unofficially called 'Standing Lion' and 'Sitting Lion.' During special occasions and when Chicago sports teams make the playoffs, these lions are dressed in appropriate team gear or holiday attire.",
+            "Getting Here": "Located in the heart of downtown Chicago at 111 South Michigan Avenue, the Art Institute is easily accessible via public transportation. Take the 'L' train to Adams/Wabash or Monroe stations, or use any of the numerous bus routes that stop nearby. For drivers, several parking garages are available within walking distance, including the Millennium Park Garage directly below the museum."
+        },
+        {
+            "Name": "Museum of Contemporary Art",
+            "Link": "https://mcachicago.org",
+            "Description": "The Museum of Contemporary Art (MCA) serves as Chicago's premier venue for cutting-edge contemporary art and new ideas. The museum's rotating exhibitions feature emerging artists alongside established contemporary masters, offering visitors a dynamic and ever-changing experience. The building itself, with its minimalist design and striking geometric forms, creates an ideal environment for experiencing contemporary art in all its forms.",
+            "Getting Here": "The MCA is located at 220 East Chicago Avenue in the Streeterville neighborhood. The closest 'L' stop is Chicago/State on the Red Line, followed by a short walk east. Several bus routes, including the 3, 10, and 66, stop directly outside the museum. For those driving, validated parking is available at nearby garages with special rates for museum visitors."
+        },
+        {
+            "Name": "National Museum of Mexican Art",
+            "Link": "https://nationalmuseumofmexicanart.org",
+            "Description": "Located in the vibrant Pilsen neighborhood, the National Museum of Mexican Art showcases 3,000 years of Mexican art and culture. It's the largest Latino cultural organization in the United States and houses one of the country's largest Mexican art collections. The museum's exhibitions range from ancient Mesoamerican artifacts to contemporary works by Mexican and Mexican-American artists, providing a comprehensive view of Mexican artistic heritage.",
+            "Fun Fact": "The museum is home to one of the largest Day of the Dead exhibitions in the United States, featuring both traditional and contemporary interpretations of this important cultural celebration. The annual exhibition attracts over 10,000 visitors each year.",
+            "Getting Here": "The museum is located at 1852 West 19th Street in the heart of Pilsen. Take the Pink Line to 18th Street station and walk a few blocks west, or use the #18 or #49 buses. Street parking is generally available in the neighborhood, and the museum offers a small free parking lot for visitors."
+        }
+    ],
+    "Closing": "Chicago's art galleries offer more than just displays of creativity – they're gateways to understanding diverse cultures, historical movements, and contemporary expressions. From the world-class collections at the Art Institute to the cutting-edge installations at the MCA and the cultural richness of the National Museum of Mexican Art, each institution provides unique perspectives on human creativity. With excellent accessibility via public transportation and thoughtfully designed spaces, these galleries invite repeated visits to fully appreciate their extensive collections and rotating exhibitions."
+}
+
+
+Most modern LLM will consistently emit a solid article like the one above just from this prompt, structured in a way that makes it easy to generate a Web page and associated metadata. Still, there's a good chance the article will lack something from a style and voice perspective. It might contain fabricated information (hallucinations). It might be too floral, or the examples too generic to be useful to a reader. For this specific, relatively simple prompt, it's possible that minor changes to the prompt itself will resolve these issues. But for more complex subject matter, or highly-detialed refinements, additonal work on this prompt may not improve things. In fact, it may actually decrease the quality of the output, as the LLM incurs attention fragmentation in the face of increasingly complex input.
+
+Prompt Chaining is an effective solution. The content from the Generative stage becomes a part of the input, with fine detail re-applied 1:1 at the field level. Functionally, Prompt Chaining looks like this:
+
+Use the following prompt to improve the utility and quality of the JSON article appearing below it. When you are finished, re-emit the article JSON with a new field "changeSummary", summarizing any changes or improvements you have made. If you have not made any changes, use the value "No changes applied".
+
+```json {
+	"Summary": "Ensure this field contains a 128 to 196 word summary explaining the joys of visiting art in the North American city identified in the article.",
+	"Location": "Ensure the city used in the article is an actual city, and that its name is spelled correctly, including use of accents (if any)",
+	"Attractions": "Ensure there are three Attractions, and that each Attraction listed is structured in accordance with the following requirements: { \"Name\": \"Ensure the attraction is an actual attraction, and that its name is spelled correctly, including use of accents (if any). Ensure the attraction is noteworthy. If it is not, consider replacing the Attraction in accordance with the instructions in this prompt.\", \"Link\": \"If possible, ensure that the link is a valid, functioning link to the attraction. If it is not, convert the link to a Google search link. Annotate each link by parenthesizing the link target. For example, if the link is a Google Search link, annotate it using (Google). If it is a direct link to the attraction, annotate is using (Direct)\", \"Description\": \"Ensure this field contains a 96 to 128 word describing the Art Gallery. Replace obscure or floral language with more graspbable terms.\", \"Fun Fact\": \"If present, Ensure this field contains a 48 to 96 word fun fact about the Art Gallery, and that the fact is historical, cultural, or information-adjacent. If the provided fun fact doesn't seem to be bona-fide, remove the Fun Fact field. If there is no Fun Fact field, ignore this instruction.\"}",
+}```
+
+[ JSON article from the Generative stage ]
+
+The Adversarial stage, applied to the Generative stage output, produces the following:
+
+{
+    "Summary": "Chicago's art gallery scene offers an unparalleled journey through artistic expression, from contemporary installations to classical masterpieces. The city's commitment to public art and cultural preservation has fostered a vibrant ecosystem of galleries, museums, and exhibition spaces that attract millions of visitors annually. Whether you're an experienced art enthusiast or a curious newcomer, Chicago's diverse art institutions provide immersive experiences that showcase both internationally renowned artists and emerging local talents. The city's architectural heritage serves as a stunning backdrop to these cultural treasures, making gallery-hopping an adventure that combines visual arts with historic urban exploration.",
+    "Location": "Chicago",
+    "Attractions": [
+        {
+            "Name": "Art Institute of Chicago",
+            "Link": "https://www.artic.edu (Direct)",
+            "Description": "The Art Institute of Chicago is one of America's largest and most important art museums. Visitors can explore over 300,000 artworks across one million square feet of space. The museum houses famous paintings like Grant Wood's 'American Gothic' and Georges Seurat's 'A Sunday on La Grande Jatte.' The modern wing showcases contemporary art and offers views of Millennium Park. Regular special exhibitions bring important artworks from around the world to Chicago.",
+            "Fun Fact": "The two bronze lions guarding the museum's Michigan Avenue entrance have names: they're unofficially called 'Standing Lion' and 'Sitting Lion.' During special occasions and when Chicago sports teams make the playoffs, these lions are dressed in appropriate team gear or holiday attire.",
+            "Getting Here": "Located in the heart of downtown Chicago at 111 South Michigan Avenue, the Art Institute is easily accessible via public transportation. Take the 'L' train to Adams/Wabash or Monroe stations, or use any of the numerous bus routes that stop nearby. For drivers, several parking garages are available within walking distance, including the Millennium Park Garage directly below the museum."
+        },
+        {
+            "Name": "Museum of Contemporary Art",
+            "Link": "https://mcachicago.org (Direct)",
+            "Description": "The Museum of Contemporary Art (MCA) is Chicago's leading contemporary art museum. Its four floors feature rotating exhibitions of paintings, sculptures, and multimedia installations from the 1920s to the present. The museum regularly hosts works by major artists like Andy Warhol, Frida Kahlo, and Jeff Koons, alongside emerging artists. Special exhibitions change every few months, ensuring repeat visitors always find something new. The museum's stark modernist building includes a theater and sculpture garden.",
+            "Getting Here": "The MCA is located at 220 East Chicago Avenue in the Streeterville neighborhood. The closest 'L' stop is Chicago/State on the Red Line, followed by a short walk east. Several bus routes, including the 3, 10, and 66, stop directly outside the museum. For those driving, validated parking is available at nearby garages with special rates for museum visitors."
+        },
+        {
+            "Name": "National Museum of Mexican Art",
+            "Link": "https://nationalmuseumofmexicanart.org (Direct)",
+            "Description": "The National Museum of Mexican Art is the largest Latin American cultural organization in the United States. Located in Chicago's Pilsen neighborhood, it presents Mexican art from ancient times to the present. Visitors can see pre-Hispanic ceramics, folk art, paintings, photography, and contemporary installations. The museum offers both permanent collections and changing exhibitions that showcase Mexican and Mexican-American artists. All exhibitions include bilingual text in English and Spanish.",
+            "Fun Fact": "The museum is home to one of the largest Day of the Dead exhibitions in the United States, featuring both traditional and contemporary interpretations of this important cultural celebration. The annual exhibition attracts over 10,000 visitors each year.",
+            "Getting Here": "The museum is located at 1852 West 19th Street in the heart of Pilsen. Take the Pink Line to 18th Street station and walk a few blocks west, or use the #18 or #49 buses. Street parking is generally available in the neighborhood, and the museum offers a small free parking lot for visitors."
+        }
+    ],
+    "Closing": "Chicago's art galleries offer more than just displays of creativity – they're gateways to understanding diverse cultures, historical movements, and contemporary expressions. From the world-class collections at the Art Institute to the cutting-edge installations at the MCA and the cultural richness of the National Museum of Mexican Art, each institution provides unique perspectives on human creativity. With excellent accessibility via public transportation and thoughtfully designed spaces, these galleries invite repeated visits to fully appreciate their extensive collections and rotating exhibitions.",
+    "changeSummary": "Made the following improvements: 1) Added (Direct) annotations to all links to indicate they are direct links to the institutions, 2) Rewrote the Art Institute of Chicago description to include more specific details about what visitors can see, 3) Completely revised the MCA description to provide concrete information about its contents and exhibitions, 4) Updated the National Museum of Mexican Art description to be more specific about its collections and include information about bilingual text access."
+}
+
+Prompt Chaining represents a trade-off in AI design. It introduces operational complexity through multi-stage orchestration, increased debugging requirements, and higher resource utilization. Hoever, these drawbacks are often outweighed by its practical benefits. The approach allows teams to improve AI output quality without risking changes to proven base prompts, similar to how microservices isolate functionality to reduce deployment risk. Its loose coupling principle—a cornerstone of robust software architecture—enables independent optimization of each stage. This modularity makes it particularly reflective of CI/CD pipelines like Jenkins, where each prompt can be executed, monitored, and refined as a discrete step in a broader workflow. For teams already using automation pipelines, this alignment with existing practices can simplify adoption and maintenance despite the additional complexity.
+

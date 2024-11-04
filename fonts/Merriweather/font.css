@@ -1,0 +1,74 @@
+<link rel="preload" href="/fonts/Merriweather/Merriweather-Black.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/Merriweather/Merriweather-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/Merriweather/Merriweather-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/Merriweather/Merriweather-Light.woff2" as="font" type="font/woff2" crossorigin>
+<!--
+<link rel="preload" href="/fonts/Merriweather/Merriweather-BlackItalic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/Merriweather/Merriweather-BoldItalic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/Merriweather/Merriweather-RegularItalic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/Merriweather/Merriweather-LightItalic.woff2" as="font" type="font/woff2" crossorigin>
+-->
+<style class="inline">
+@font-face {
+  font-family: '{%use%}Black';
+  src: url('/fonts/Merriweather/Merriweather-Black.woff2') format('woff2'),
+       url('/fonts/Merriweather/Merriweather-Black.woff') format('woff'),
+       url('/fonts/Merriweather/Merriweather-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}Heavy';
+  src: url('/fonts/Merriweather/Merriweather-Bold.woff2') format('woff2'),
+       url('/fonts/Merriweather/Merriweather-Bold.woff') format('woff'),
+       url('/fonts/Merriweather/Merriweather-Bold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}Bold';
+  src: url('/fonts/Merriweather/Merriweather-Bold.woff2') format('woff2'),
+       url('/fonts/Merriweather/Merriweather-Bold.woff') format('woff'),
+       url('/fonts/Merriweather/Merriweather-Bold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}Medium';
+  src: url('/fonts/Merriweather/Merriweather-Regular.woff2') format('woff2'),
+       url('/fonts/Merriweather/Merriweather-Regular.woff') format('woff'),
+       url('/fonts/Merriweather/Merriweather-Regular.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}Regular';
+  src: url('/fonts/Merriweather/Merriweather-Regular.woff2') format('woff2'),
+       url('/fonts/Merriweather/Merriweather-Regular.woff') format('woff'),
+       url('/fonts/Merriweather/Merriweather-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}Light';
+  src: url('/fonts/Merriweather/Merriweather-Light.woff2') format('woff2'),
+       url('/fonts/Merriweather/Merriweather-Light.woff') format('woff'),
+       url('/fonts/Merriweather/Merriweather-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+:root {
+  --aa-{%lcuse%}-black: '{%use%}Black'{%fallback%};
+  --aa-{%lcuse%}-heavy: '{%use%}Bold'{%fallback%};
+  --aa-{%lcuse%}-bold: '{%use%}Bold'{%fallback%};
+  --aa-{%lcuse%}-medium: '{%use%}Reguar'{%fallback%};
+  --aa-{%lcuse%}-regular: '{%use%}Regular'{%fallback%};
+  --aa-{%lcuse%}-light: '{%use%}Light'{%fallback%};
+}
+</style>

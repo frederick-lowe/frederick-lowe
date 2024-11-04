@@ -274,6 +274,7 @@ class ConfigTest extends TestCase
 
         $this->assertFalse($config->has('foo.bar.baz'));
     }
+    
     /**
      * Test that the compile method replaces macros with corresponding config values.
      */

@@ -1,0 +1,219 @@
+#!/usr/bin/env python3
+
+# Define the directory where the fonts and JSON are located
+import os
+import json
+import subprocess
+from fontTools.ttLib import TTFont
+import shutil
+import gzip
+import brotli
+
+# Define the root directory where the fonts are located
+root_directory = "."
+
+def cleanup_files(directory):
+    """Removes .zip files and entire 'static' directories from the specified directory."""
+    for root, dirs, files in os.walk(directory, topdown=False):
+        # Remove .zip files
+        for file in files:
+            if file.endswith('.zip'):
+                file_path = os.path.join(root, file)
+                os.remove(file_path)
+                print(f"Removed {file_path}")
+        
+        # Remove 'static' directories
+        for dir in dirs:
+            if dir == 'static':
+                dir_path = os.path.join(root, dir)
+                shutil.rmtree(dir_path)
+                print(f"Removed directory {dir_path}")
+
+def walk_directory(directory):
+    """Recursively walks through a directory and its subdirectories."""
+    for root, dirs, files in os.walk(directory):
+        for file in files:
+            yield os.path.join(root, file)
+
+def move_italic_fonts(directory):
+    """Moves italic font files to a new subdirectory 'Italic' within their respective directories."""
+    for root, dirs, files in os.walk(directory):
+        italic_directory = os.path.join(root, 'Italic')
+        for file in files:
+            if '-italic-' in file.lower() and file.endswith('.ttf'):
+                if not os.path.exists(italic_directory):
+                    os.makedirs(italic_directory)
+                original_path = os.path.join(root, file)
+                new_path = os.path.join(italic_directory, file)
+                shutil.move(original_path, new_path)
+                print(f"Moved {original_path} to {new_path}")
+
+def compress_font_file(filepath):
+    """Compresses a TTF font file with gzip and brotli."""
+    if filepath.endswith('.ttf'):
+
+        gzip_path = filepath + '.gz'
+        brotli_path = filepath + '.br'
+
+        # Check if compressed files already exist
+        if os.path.exists(gzip_path) and os.path.exists(brotli_path):
+            """print(f"Compressed versions already exist for {filepath}, skipping compression.")"""
+            return
+
+        with open(filepath, 'rb') as file:
+            content = file.read()
+            gzip_content = gzip.compress(content)
+            brotli_content = brotli.compress(content)
+
+        with open(gzip_path, 'wb') as gz_file:
+            gz_file.write(gzip_content)
+        with open(brotli_path, 'wb') as br_file:
+            br_file.write(brotli_content)
+
+        print(f"Compressed {filepath} to {gzip_path} and {brotli_path}")
+
+def process_fonts(directory):
+    """Processes font files in each directory to generate CSS and compress them."""
+    for root, dirs, files in os.walk(directory):
+        font_data = {}
+        has_ttf = any(file.endswith('.ttf') for file in files)
+        if has_ttf:
+            # Process each TTF file in the current directory
+            for file in files:
+                filepath = os.path.join(root, file)
+                if file.endswith('.ttf'):
+                    run_subsetter_if_needed(filepath)
+                    compress_font_file(filepath)
+
+            # Generate CSS for the current directory if there are TTF files
+            font_data.update(get_font_weights_and_paths(root))
+            css_filename = os.path.join(root, "font.css")
+            if not os.path.exists(css_filename):
+                css_output = generate_font_css_from_json(font_data)
+                with open(css_filename, 'w') as css_file:
+                    css_file.write(css_output)
+                print(f"Generated CSS in {css_filename}")
+            else:
+                """print(f"CSS file already exists in {root}, skipping.")"""
+
+def get_font_name_style_from_filename(filename):
+    """Extracts the font name and style from a given filename."""
+    base_part = filename.split("-VariableFont")[0]
+    return base_part
+
+def get_font_weights(min_weight, max_weight):
+    """Selects the appropriate weighting strategy based on the font's weight range."""
+    if is_range_adequate(min_weight, max_weight):
+        return interpolate_weights(min_weight, max_weight)
+    else:
+        return alias_weights(min_weight, max_weight)
+
+def is_range_adequate(min_weight, max_weight):
+    """Determines if the range between min_weight and max_weight is adequate."""
+    return (max_weight - min_weight) >= 800
+
+def interpolate_weights(min_weight, max_weight):
+    """Interpolates weights across the full spectrum for adequate ranges."""
+    steps = ["Black", "Heavy", "Bold", "DemiBold", "Medium", "Regular", "Light", "ExtraLight", "Thin"]
+    num_steps = len(steps)
+    step_size = max((max_weight - min_weight) // (num_steps - 1), 100)
+    actual_steps = [min_weight + i * step_size for i in range(num_steps)]
+    if actual_steps[-1] > max_weight:
+        actual_steps[-1] = max_weight
+    return dict(zip(steps, actual_steps[::-1]))
+
+def alias_weights(min_weight, max_weight):
+  """Aliases weights for narrower ranges."""
+  # Calculate the whole-hundreds mean
+  mean_weight = round((min_weight + max_weight) / 2, -2)
+
+  # Calculate the delta between min_weight and max_weight
+  weight_delta = max_weight - min_weight
+
+  # Choose the closest whole number in the set (25, 50, 100) to the delta divided by the number of steps
+  step_size = min((25, 50, 100), key=lambda x: abs(weight_delta / x))
+
+  # Calculate the number of steps
+  num_steps = (max_weight - min_weight) // step_size + 1
+
+  # Calculate the weight distribution
+  weight_distribution = [max_weight - i * ((max_weight - mean_weight) / (num_steps // 2)) for i in range(num_steps // 2)] + \
+                        [mean_weight] * 2 + \
+                        [mean_weight - (i + 1) * ((mean_weight - min_weight) / (num_steps // 2)) for i in range(num_steps // 2)] + \
+                        [min_weight]
+
+  # Ensure weights are integers without a mantissa
+  weight_distribution = [int(weight) for weight in weight_distribution]
+
+  # Define weight labels
+  steps = ["Black", "Heavy", "Bold", "DemiBold", "Medium", "Regular", "Light", "ExtraLight", "Thin"]
+
+  # Return the dictionary mapping weight aliases to their corresponding weights
+  return dict(zip(steps, weight_distribution))
+
+def get_font_weights_and_paths(directory):
+    """Generates a dictionary of font weights and paths."""
+    font_data = {}
+    for filename in os.listdir(directory):
+        if filename.endswith(".ttf"):
+            font_path = os.path.join(directory, filename)
+            font = TTFont(font_path)
+            # Extract base font name for directory structuring
+            base_font_name = get_font_name_style_from_filename(filename).split('-')[0]
+            full_font_name = get_font_name_style_from_filename(filename)
+
+            if full_font_name not in font_data:
+                font_data[full_font_name] = {}
+
+            if 'fvar' in font:
+                for axis in font['fvar'].axes:
+                    if axis.axisTag == 'wght':
+                        min_weight, max_weight = int(axis.minValue), int(axis.maxValue)
+                        weights = get_font_weights(min_weight, max_weight)
+                        for name, weight in weights.items():
+                            # Correctly prepend the base_font_name to the path
+                            modified_path = f"/fonts/{base_font_name}/" + font_path.replace(directory, "").lstrip(os.sep)
+                            modified_path = modified_path[:-4] if modified_path.lower().endswith(".ttf") else modified_path
+                            modified_path = modified_path[:-3] if modified_path.lower().endswith("ttf") else modified_path
+                            font_data[full_font_name][name] = {"weight": weight, "path": modified_path}
+                        break
+    return font_data
+
+def generate_font_css_from_json(font_data):
+    """Generates CSS for font preload and @font-face declarations from JSON data."""
+    css_output = ""
+    for font_name, styles in font_data.items():
+        font_path = styles[list(styles.keys())[0]]["path"]
+        css_output += f"<link rel=\"preload\" href=\"{font_path}.woff2\" as=\"font\" type=\"font/woff2\" crossorigin>\n"
+        css_output += "<style class=\"inline\">\n"
+        for class_name, style in styles.items():
+            font_family = f"{class_name}"
+            font_css = f"@font-face {{\n  font-family: '{{%use%}}{font_family}';\n  src: url('{font_path}.woff2') format('woff2'),\n       url('{font_path}.woff') format('woff'),\n       url('{font_path}.ttf') format('truetype');\n  font-weight: {style['weight']};\n  font-style: normal;\n  font-display: swap;\n}}\n"
+            css_output += font_css
+        css_output += ":root {\n"
+        for class_name, style in styles.items():
+            css_output += f"  --aa-{{%lcuse%}}-{class_name.lower()}: '{{%use%}}{class_name}'{{%fallback%}};\n"
+        css_output += "}\n</style>\n"
+    return css_output
+
+def run_subsetter_if_needed(ttffile):
+    """Runs the pyftsubset tool if .woff and .woff2 files don't exist."""
+    base_name = os.path.basename(ttffile).rsplit('.', 1)[0]
+    directory = os.path.dirname(ttffile) or "."
+    for flavor in ['woff', 'woff2']:
+        output_file = f"{directory}/{base_name}.{flavor}"
+        if not os.path.exists(output_file):
+            cmd = [
+                "pyftsubset", ttffile,
+                "--unicodes=U+0020-007F,U+00A0-00FF,U+0100-017F,U+2192",
+                "--layout-features=",  # Keeping it empty but correctly formatted
+                f"--flavor={flavor}",
+                f"--output-file={output_file}"
+            ]
+            subprocess.run(cmd, check=True)
+            print(f"Processed {output_file}")
+
+if __name__ == "__main__":
+    cleanup_files(root_directory)
+    move_italic_fonts(root_directory)
+    process_fonts(root_directory)

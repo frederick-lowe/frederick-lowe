@@ -1,0 +1,22 @@
+For the last two years, I’ve worked almost daily with various Large Language Models (LLMs). I’ve played around quite a bit with Anthropic’s “Claude” models, and a little with Gemini, but most of my product integration experience has been with OpenAI models — which you probably know as ChatGPT, or simply GPT-3, 4, etc.
+
+Every AI project I’ve worked on aims to integrate these technologies for either analysis or generation, with the goal of creating or summarizing content so it can be ingested into existing platforms. That makes sense. Despite the marketing hype, commercially available AI isn’t at a point where companies can discard their CRM, accounting, or inventory systems in favor of a general-purpose AI.
+
+Creating data for existing systems has gotten easier. GPT-4’s output quality is dramatically better than GPT-3’s. But even with these improvements, today’s LLMs can be inconsistent. They still hallucinate, sometimes ignore or misinterpret instructions, and occasionally emit content laden with hyperbole and uncommon vocabulary. They also commit simple errors and omissions.
+
+Accordingly, there’s a sea of information out there about prompting strategies and fine-tuning or customization. In this article, I’m sharing a method I’ve been using for a while with tremendous success at generating programmatically reliable, structured AI outputs: JSON Meta-prompting.
+
+If you’re a software engineer, you may already know that a Transformer’s attention mechanism is O(n²) with respect to the length of the input sequence (prompt). If you’re not an engineer, a simpler way to understand this is that for each token (or word) in your prompt, the model calculates attention scores for every other token. These scores determine how much each token should "pay attention" to every other token. This means the computational complexity of responding to your prompt increases quadratically with its length.
+
+If math isn’t your thing, think of it this way: imagine being asked to remember every letter in a sequence in relation to every other letter. If I give you two letters, "a" and "b," you only need to track two relationships: "ab" and "ba." But if I give you three letters — "a," "b," and "c" — you now have six relationships to consider: "ab," "ac," "ba," "bc," "ca," and "cb." For every new letter I add, the number of relationships grows rapidly. A moderately complex 1,800-token prompt requires the Transformer to evaluate around 3.24 million token associations.
+
+Complex prompts aren’t inherently bad, and they don’t necessarily cause response inconsistency. But they do make it more computationally intensive for a Transformer to “understand” and retain focus on the most important word associations. In practice, I’ve observed that complex, high-performing prompts often hit a plateau. At this point, the prompt can become brittle, meaning even minor changes can dramatically reduce the quality of the output.
+
+JSON Meta-prompting addresses these challenges by structuring prompts to leverage three key principles of how Transformers process input:
+
+Structured Attention: JSON organizes the prompt into clear fields and hierarchies, helping the model focus on distinct chunks of information rather than processing an unstructured, plain-language prompt.
+Field-Level Context Reinforcement: Transformers thrive on context, and JSON implicitly provides it. Clear, specific instructions at the field level make the role of each field within the overall prompt clearer.
+Boundary Setting: JSON creates implicit boundaries. Each field is self-contained, and although Transformers can attend to the entire input, this organization reduces the risk of attention drifting to irrelevant sections.
+One key advantage of this approach over custom LLMs (which achieve similar consistency through fine-tuning) is that it’s vendor-independent. OpenAI’s next model will likely perform as well or better with the same prompt, and if you switch to another vendor with a similarly competent model, the prompt should still work.
+
+This ended up being a longer post than I expected, but I hope it’s given you a useful introduction to JSON Meta-prompting. In Part II, I’ll explain how to implement it from a practical perspective.

@@ -1,0 +1,95 @@
+<link rel="preload" href="/fonts/Mulish/Mulish-VariableFont_wght.woff2" as="font" type="font/woff2" crossorigin>
+<style class="inline">
+@font-face {
+  font-family: '{%use%}Black';
+  src: url('/fonts/Mulish/Mulish-VariableFont_wght.woff2') format('woff2'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.woff') format('woff'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.ttf') format('truetype');
+  font-weight: 1000;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}Heavy';
+  src: url('/fonts/Mulish/Mulish-VariableFont_wght.woff2') format('woff2'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.woff') format('woff'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}Bold';
+  src: url('/fonts/Mulish/Mulish-VariableFont_wght.woff2') format('woff2'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.woff') format('woff'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}DemiBold';
+  src: url('/fonts/Mulish/Mulish-VariableFont_wght.woff2') format('woff2'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.woff') format('woff'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}Medium';
+  src: url('/fonts/Mulish/Mulish-VariableFont_wght.woff2') format('woff2'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.woff') format('woff'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}Regular';
+  src: url('/fonts/Mulish/Mulish-VariableFont_wght.woff2') format('woff2'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.woff') format('woff'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}Light';
+  src: url('/fonts/Mulish/Mulish-VariableFont_wght.woff2') format('woff2'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.woff') format('woff'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}ExtraLight';
+  src: url('/fonts/Mulish/Mulish-VariableFont_wght.woff2') format('woff2'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.woff') format('woff'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: '{%use%}Thin';
+  src: url('/fonts/Mulish/Mulish-VariableFont_wght.woff2') format('woff2'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.woff') format('woff'),
+       url('/fonts/Mulish/Mulish-VariableFont_wght.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+:root {
+  --aa-{%lcuse%}-black: '{%use%}Black'{%fallback%};
+  --aa-{%lcuse%}-heavy: '{%use%}Heavy'{%fallback%};
+  --aa-{%lcuse%}-bold: '{%use%}Bold'{%fallback%};
+  --aa-{%lcuse%}-demibold: '{%use%}DemiBold'{%fallback%};
+  --aa-{%lcuse%}-medium: '{%use%}Medium'{%fallback%};
+  --aa-{%lcuse%}-regular: '{%use%}Regular'{%fallback%};
+  --aa-{%lcuse%}-light: '{%use%}Light'{%fallback%};
+  --aa-{%lcuse%}-extralight: '{%use%}ExtraLight'{%fallback%};
+  --aa-{%lcuse%}-thin: '{%use%}Thin'{%fallback%};
+}
+</style>
