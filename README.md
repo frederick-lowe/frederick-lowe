@@ -2,11 +2,12 @@
 
 - 🔭 I’m currently working on ...
 
-	A few AI projects
+	- A few AI projects
 
 - 🌱 I’m currently learning ...
 
-	How to coax accurate, consistent, complex outputs from LLM by alternating generative and adversarial review steps in a flexibly staged, autoscaling pipeline
+	- How to coax accurate, consistent, complex outputs from LLM by alternating generative and adversarial review steps in a flexibly staged, autoscaling pipeline
+	- Kansas' 'Dust In The Wind' on acoustic guitar
 
 - 👯 I’m looking to collaborate on ...
 
