@@ -6,18 +6,19 @@ use ArrayAccess;
 
 /**
  * A configuration manager class that allows storing and retrieving settings.
+ * Implements ArrayAccess for array-like access to configuration settings.
  */
 final class Config implements ArrayAccess
 {
     /**
      * @var array<string, mixed> The configuration settings.
      */
-    private array $settings;
+    private array $settings = [];
 
     /**
-     * @var bool Indicates if the configuration is mutable.
+     * @var bool Whether the configuration is mutable.
      */
-    private bool $mutable;
+    private bool $mutable = true;
 
     /**
      * Constructor.
@@ -25,10 +26,19 @@ final class Config implements ArrayAccess
      * @param array<string, mixed> $settings Initial configuration settings.
      * @param bool $mutable If the configuration is mutable (default: true).
      */
-    public function __construct(array $settings = [], bool $mutable = true)
-    {
+    public function __construct(array $settings = [], bool $mutable = true) 
+    { 
         $this->settings = $settings;
         $this->mutable = $mutable;
+        $this->initDefaultSettings();
+    }
+
+    /**
+     * Initializes default settings.
+     */
+    private function initDefaultSettings(): void 
+    {
+        $this->settings['currentYear'] = date('Y');
     }
 
     /**
@@ -198,6 +208,10 @@ final class Config implements ArrayAccess
      */
     public function offsetUnset(mixed $offset): void
     {
+        if (!$this->mutable) {
+            throw new \RuntimeException('Config is read-only.');
+        }
+
         if (!is_string($offset)) {
             throw new \TypeError('Config keys must be strings.');
         }
@@ -227,20 +241,45 @@ final class Config implements ArrayAccess
     }
 
     /**
-     * Loads multiple configuration settings from an array.
+     * Loads multiple configuration settings from an array, merging with existing settings.
      *
      * @param array<string, mixed> $settings An array of configuration settings.
+     * @return array<string, mixed> The merged settings.
      * @throws \RuntimeException If the configuration is immutable.
      */
-    public function loadFromArray(array $settings): void
+    public function loadFromArray(array $settings): array
     {
         if (!$this->mutable) {
             throw new \RuntimeException('Config is read-only.');
         }
 
-        foreach ($settings as $key => $value) {
-            $this->set($key, $value);
+        // Recursively merge the new settings with the existing ones
+        $this->settings = $this->mergeRecursive($this->settings, $settings);
+
+        $this->compile();
+
+        return $this->settings;
+    }
+
+    /**
+     * Recursively merges two arrays.
+     *
+     * @param array<string, mixed> $array1 The original array.
+     * @param array<string, mixed> $array2 The array to merge into the original array.
+     * @return array<string, mixed> The merged array.
+     */
+    private function mergeRecursive(array $array1, array $array2): array
+    {
+        foreach ($array2 as $key => $value) {
+            // If the key exists in both arrays and both values are arrays, merge them recursively
+            if (isset($array1[$key]) && is_array($array1[$key]) && is_array($value)) {
+                $array1[$key] = $this->mergeRecursive($array1[$key], $value);
+            } else {
+                // Otherwise, overwrite or add the value
+                $array1[$key] = $value;
+            }
         }
+        return $array1;
     }
 
     /**
@@ -283,5 +322,23 @@ final class Config implements ArrayAccess
                 return (string)$macroValue;
             }
         }, $string);
+    }
+
+    /**
+     * Prints the current configuration settings.
+     */
+    public function printSettings(): void 
+    {
+        print_r($this->settings);
+    }
+
+    /**
+     * Returns the current configuration settings.
+     *
+     * @return array<string, mixed> The current configuration settings.
+     */
+    public function getSettings(): array 
+    {
+        return $this->settings;
     }
 }

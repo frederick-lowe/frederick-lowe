@@ -1,0 +1,27 @@
+#!/bin/sh
+
+dir=`pwd` 
+
+cd ./src
+
+count=`ls -1 *.png 2>/dev/null | wc -l`
+
+if [ $count != 0 ] 
+
+then
+
+  for i in *png; do 
+
+    echo "converting ${i}"
+    convert -quality 85 "./${i}" "../${i%png}png"
+    convert -quality 85 "./${i}" "../${i%png}jp2"
+    convert -quality 85 "./${i}" "../${i%png}jpg"
+    cwebp -quiet -q  85 "${dir}/src/${i}" -o "${dir}/${i%png}webp" 
+
+  done;
+
+else
+
+  echo "nothing to convert"
+
+fi

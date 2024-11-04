@@ -1,0 +1,155 @@
+TODO Investigate DASH and HLS for video streaming
+
+	Nginx can support both HLS (HTTP Live Streaming) and DASH (Dynamic Adaptive Streaming over HTTP), but it requires some additional configuration and modules.
+
+	For HLS (HTTP Live Streaming):
+	Nginx natively supports HLS with the Nginx RTMP module. This module enables Nginx to act as a media streaming server for live and on-demand content using the HLS protocol.
+
+	Steps to Enable HLS on Nginx:
+	Install Nginx with the RTMP module: You need to either compile Nginx with the RTMP module or install a pre-built version that includes it. Here’s how you can compile Nginx with the RTMP module:
+
+	bash
+	Copy code
+	# Clone Nginx and the RTMP module
+	git clone https://github.com/arut/nginx-rtmp-module.git
+	wget http://nginx.org/download/nginx-1.20.1.tar.gz
+	tar -zxvf nginx-1.20.1.tar.gz
+	cd nginx-1.20.1
+
+	# Configure and build Nginx with the RTMP module
+	./configure --add-module=../nginx-rtmp-module
+	make
+	sudo make install
+	Alternatively, you can install Nginx from repositories that include the RTMP module.
+
+	Configure Nginx for HLS: Add the following to your Nginx configuration file (typically located at /etc/nginx/nginx.conf):
+
+	nginx
+	Copy code
+	rtmp {
+	    server {
+	        listen 1935;
+	        chunk_size 4096;
+
+	        application live {
+	            live on;
+	            hls on;
+	            hls_path /tmp/hls;
+	            hls_fragment 3s;
+	            hls_playlist_length 60s;
+	        }
+	    }
+	}
+
+	server {
+	    listen 8080;
+	    location /hls {
+	        types {
+	            application/vnd.apple.mpegurl m3u8;
+	            video/mp2t ts;
+	        }
+	        alias /tmp/hls;
+	    }
+	}
+
+	In this configuration:
+
+	Nginx listens for RTMP streams on port 1935.
+	It outputs HLS streams to the /tmp/hls directory.
+	HLS fragments are set to 3 seconds, and the playlist length is set to 60 seconds.
+	Stream Your Video Using HLS: Once Nginx is configured, you can serve HLS streams by pointing your video player to the HLS .m3u8 file, which Nginx will generate.
+
+	For DASH (Dynamic Adaptive Streaming over HTTP):
+	Nginx does not have native support for DASH like it does for HLS, but it can serve DASH streams by simply serving the files via HTTP. DASH relies on pre-segmented video and audio files along with a manifest file (.mpd), which can be served from a regular HTTP server.
+
+	Steps to Enable DASH on Nginx:
+	Generate DASH Files: You can use ffmpeg to generate the DASH segments and manifest:
+
+	bash
+	Copy code
+	ffmpeg -i input.mp4 -map 0 -map 0 -b:v:0 1000k -b:v:1 500k -c:v libx264 -c:a aac -f dash dash.mpd
+	This will generate the .mpd file and the segmented video files.
+
+	Serve DASH Files via Nginx: Simply place the generated DASH files (the .mpd manifest and the video/audio segments) in a directory served by Nginx, and ensure your Nginx configuration allows access to the folder where the DASH files are located.
+
+	Example Nginx configuration:
+
+	nginx
+	Copy code
+	server {
+	    listen 8080;
+
+	    location /dash/ {
+	        root /var/www/html;
+	        add_header Cache-Control no-cache;
+	    }
+	}
+	In this case, Nginx serves the DASH files from the /var/www/html/dash/ directory. The DASH player will request the .mpd manifest file and the associated video segments.
+
+	Summary:
+	HLS: Nginx supports HLS streaming via the Nginx RTMP module. You need to configure this module to create HLS streams, which Nginx can then serve to clients.
+	DASH: Nginx can serve DASH files via regular HTTP, as DASH only requires segmented media files and a manifest. There is no special Nginx module required for DASH, but you must ensure the .mpd and segment files are correctly generated and accessible via your Nginx server.
+	Both protocols can be easily set up on Nginx, but HLS requires the RTMP module for live streaming, while DASH just requires standard HTTP serving of the media segments and manifest file.
+
+	DASH (Dynamic Adaptive Streaming over HTTP) from a low-cost cloud bucket can indeed be a better option than HLS for certain use cases. Here's why DASH might be a preferable choice, especially when using cloud storage like AWS S3, Google Cloud Storage, or Azure Blob Storage:
+
+	Benefits of Using DASH Over a Cloud Bucket:
+	Compatibility:
+
+	DASH is an open standard and widely supported across different devices and platforms. Most modern browsers (Chrome, Firefox, Edge, etc.) and streaming players (like dash.js) can natively support DASH, making it easy to implement without needing special server configurations.
+	HLS is primarily supported natively on Apple devices (Safari and iOS), but non-Apple browsers (like Chrome and Firefox) generally require a JavaScript player (e.g., hls.js) to support it.
+	No Need for Specialized Server Configuration:
+
+	With DASH, you can store your .mpd manifest and segmented media files (video/audio chunks) in a simple, cost-effective cloud bucket. You don't need a specialized server like Nginx with the RTMP module to handle HLS segmenting in real-time.
+	HLS, on the other hand, often requires a server (like Nginx with the RTMP module or other streaming servers) to generate and serve the HLS playlists (.m3u8) and media segments. This can add complexity and cost, especially if you're doing live streaming.
+	Scalability:
+
+	Cloud buckets like AWS S3, Google Cloud Storage, or Azure Blob Storage are inherently scalable. With DASH, your pre-segmented files are just static objects in the bucket, which can be served directly over HTTP/HTTPS. Cloud providers handle the scalability, ensuring your content can be served to a large audience without worrying about server performance or configuration.
+	This can reduce costs significantly, as you’re not maintaining dedicated servers for video streaming.
+	Cost Efficiency:
+
+	Storing and serving DASH files from cloud storage tends to be cost-effective. You only pay for storage and bandwidth (data transfer), and there’s no need for a live transcoding server.
+	HLS, especially for live streaming, would require server resources for segmenting and maintaining playlists dynamically, adding infrastructure costs.
+	Better Bandwidth Optimization:
+
+	DASH is known for being efficient with network bandwidth. It adjusts video quality dynamically based on the viewer’s bandwidth in real-time, ensuring that the best possible quality is streamed without buffering. This is especially useful when serving a global audience with varying internet speeds.
+	HLS also supports adaptive streaming but has historically had slightly larger overhead, especially in older versions (though it has improved with newer standards).
+	Customizable Streaming Experience:
+
+	DASH allows for highly customizable streaming experiences. You can serve multiple bitrates and resolutions (e.g., 360p, 480p, 720p, 1080p) and let the player dynamically adjust the stream according to the user's connection.
+	This flexibility ensures smooth playback without the need for additional infrastructure costs, as the cloud bucket simply serves pre-encoded, segmented files.
+	How to Set Up DASH Using a Cloud Bucket:
+	Generate DASH Files: You can use ffmpeg to create the .mpd manifest and segmented files:
+
+	bash
+	Copy code
+	ffmpeg -i input.mp4 -map 0 -map 0 -b:v:0 300k -b:v:1 600k -b:v:2 1200k -c:v libx264 -f dash dash.mpd
+	This creates multiple video bitrates (300k, 600k, 1200k) and outputs them in DASH format with an .mpd manifest file.
+
+	Upload to Cloud Bucket: Upload the .mpd manifest file and the segmented .m4s (video/audio chunks) to a cloud storage bucket (e.g., AWS S3, Google Cloud, or Azure Blob).
+
+	Serve DASH from the Cloud Bucket: Ensure your cloud storage bucket is set up for public access (or access via a CDN) to serve the .mpd and segment files over HTTP/HTTPS.
+
+	Use a DASH Player: You can use dash.js (a popular open-source JavaScript DASH player) to play the DASH stream directly in a browser:
+
+	html
+	Copy code
+	<video id="video" controls></video>
+	<script src="https://cdn.dashjs.org/latest/dash.all.min.js"></script>
+	<script>
+	    var player = dashjs.MediaPlayer().create();
+	    player.initialize(document.querySelector("#video"), "https://your-bucket-url/dash.mpd", true);
+	</script>
+	This code loads the DASH manifest and allows the browser to dynamically switch between different video bitrates.
+
+	Key Considerations:
+	
+	Cloud Bucket Costs: You’ll pay for the storage and bandwidth usage in the cloud bucket. Make sure to optimize your video segments and file sizes to avoid high data transfer costs.
+	CDN for Better Performance: If your audience is global, you can use a Content Delivery Network (CDN) with your cloud bucket (e.g., AWS CloudFront with S3 or Google CDN) to distribute the DASH files efficiently across regions.
+	Pre-encoding: Since DASH uses pre-segmented files, you need to ensure that you encode your videos into multiple bitrates before uploading them to the bucket. This requires more storage but ensures smooth streaming for various connection speeds.
+	
+	Conclusion:
+	DASH over a low-cost cloud bucket is an excellent solution if you're looking for a scalable, cost-effective, and adaptive streaming solution. It removes the need for a dedicated streaming server like Nginx with the RTMP module (required for HLS) and takes advantage of the static file-serving capabilities of cloud storage. This approach is ideal for on-demand video content, offering flexibility, compatibility, and cost efficiency.
+
+TODO Video upload feature (interface, user experience and feedback, post upload optimization)
+TODO Image upload feature (interface, user experience and feedback, post upload optimization)
